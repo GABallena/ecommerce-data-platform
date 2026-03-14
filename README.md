@@ -2,6 +2,8 @@
 
 End-to-end data platform that ingests raw e-commerce data from multiple source systems, transforms it through a medallion architecture (Bronze → Silver → Gold), and produces analytics-ready fact and dimension tables in a local DuckDB warehouse.
 
+The `data/` directory contains small sample datasets for demonstration and CI testing. In a production setting, these would be replaced by live extracts from the source systems described in [docs/client_request.md](docs/client_request.md).
+
 ## What It Does
 
 1. **Ingests** data from 4 source systems (PostgreSQL, payment API, marketing CSVs, inventory database) into a partitioned raw landing zone with schema detection, retry logic, and ingestion logging.
