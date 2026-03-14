@@ -1,0 +1,35 @@
+{
+  "partition_date": "2026-03-10",
+  "sources": {
+    "postgres": {
+      "entities": {
+        "orders": "data/orders_2026-03-10.csv",
+        "order_items": "data/order_items_2026-03-10.csv",
+        "customers": "data/customers_2026-03-10.csv",
+        "products": "data/products_2026-03-10.csv"
+      }
+    },
+    "payments": {
+      "entities": {
+        "transactions": "data/payment_transactions_2026-03-10.json"
+      }
+    },
+    "marketing": {
+      "entities": {
+        "campaign_performance": "data/campaign_performance_2026-03-10.csv",
+        "email_sends": "data/email_sends_2026-03-10.csv"
+      }
+    },
+    "inventory": {
+      "entities": {
+        "inventory_snapshot": "data/inventory_snapshot_2026-03-10.csv",
+        "purchase_orders": "data/purchase_orders_2026-03-10.csv"
+      }
+    }
+  },
+  "retry": {
+    "max_retries": 3,
+    "retry_delay": 2.0,
+    "retry_backoff": 2.0
+  }
+}

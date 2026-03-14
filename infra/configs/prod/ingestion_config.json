@@ -1,0 +1,35 @@
+{
+  "partition_date": "${PARTITION_DATE}",
+  "sources": {
+    "postgres": {
+      "entities": {
+        "orders": "data/orders_${PARTITION_DATE}.csv",
+        "order_items": "data/order_items_${PARTITION_DATE}.csv",
+        "customers": "data/customers_${PARTITION_DATE}.csv",
+        "products": "data/products_${PARTITION_DATE}.csv"
+      }
+    },
+    "payments": {
+      "entities": {
+        "transactions": "data/payment_transactions_${PARTITION_DATE}.json"
+      }
+    },
+    "marketing": {
+      "entities": {
+        "campaign_performance": "data/campaign_performance_${PARTITION_DATE}.csv",
+        "email_sends": "data/email_sends_${PARTITION_DATE}.csv"
+      }
+    },
+    "inventory": {
+      "entities": {
+        "inventory_snapshot": "data/inventory_snapshot_${PARTITION_DATE}.csv",
+        "purchase_orders": "data/purchase_orders_${PARTITION_DATE}.csv"
+      }
+    }
+  },
+  "retry": {
+    "max_retries": 3,
+    "retry_delay": 5.0,
+    "retry_backoff": 2.0
+  }
+}

@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+
+data/*.csv
+data/*.json
+
+pipeline/raw/
+pipeline/logs/
+pipeline/warehouse/warehouse.duckdb
+
+.env

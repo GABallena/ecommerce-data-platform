@@ -1,0 +1,15 @@
+{
+  "email": {
+    "enabled": false,
+    "smtp_host": "smtp.gmail.com",
+    "smtp_port": 587,
+    "from_addr": "pipeline-alerts@example.com",
+    "to_addrs": ["data-team@example.com"],
+    "username": "",
+    "password": ""
+  },
+  "slack": {
+    "enabled": false,
+    "webhook_url": "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "email": {
+    "enabled": true,
+    "smtp_host": "${SMTP_HOST}",
+    "smtp_port": 587,
+    "from_addr": "${ALERT_FROM_EMAIL}",
+    "to_addrs": ["${ALERT_TO_EMAIL}"],
+    "username": "${SMTP_USERNAME}",
+    "password": "${SMTP_PASSWORD}"
+  },
+  "slack": {
+    "enabled": true,
+    "webhook_url": "${SLACK_WEBHOOK_URL}"
+  }
+}

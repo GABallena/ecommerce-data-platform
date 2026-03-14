@@ -1,0 +1,173 @@
+
+name: Pipeline CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: "3.12"
+  AWS_REGION: us-east-1
+  ECR_REPO: ecommerce-pipeline
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install linters
+        run: pip install ruff
+
+      - name: Ruff check
+        run: ruff check pipeline/
+
+      - name: Ruff format check
+        run: ruff format --check pipeline/
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run ingestion
+        run: python -m pipeline.run_ingestion
+
+      - name: Run warehouse build
+        run: python -m pipeline.run_warehouse
+
+      - name: Run data quality checks
+        run: python -m pipeline.quality.run_data_quality
+
+      - name: Run full pipeline (integration)
+        run: python pipeline/run_pipeline.py
+
+      - name: Verify dashboard works
+        run: python -m pipeline.monitoring.dashboard --json > /dev/null
+
+      - name: Upload DQ report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dq-reports
+          path: pipeline/logs/dq_reports/
+          retention-days: 30
+
+  build:
+    name: Build & Push
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push'
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tags }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set image tag
+        id: meta
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            TAG="stable-${SHORT_SHA}"
+          else
+            TAG="dev-${SHORT_SHA}"
+          fi
+          echo "tags=${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPO }}:${TAG}" >> "$GITHUB_OUTPUT"
+          echo "short_tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.tags }}
+            ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPO }}:${{ github.ref == 'refs/heads/main' && 'stable' || 'latest' }}
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push'
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set environment
+        id: env
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "env=prod" >> "$GITHUB_OUTPUT"
+          else
+            echo "env=dev" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update ECS task definition
+        run: |
+          FAMILY="${{ env.ECR_REPO }}-${{ steps.env.outputs.env }}"
+          IMAGE="${{ needs.build.outputs.image_tag }}"
+
+          TASK_DEF=$(aws ecs describe-task-definition \
+            --task-definition "$FAMILY" \
+            --query 'taskDefinition' \
+            --output json)
+
+          NEW_TASK_DEF=$(echo "$TASK_DEF" | \
+            jq --arg IMAGE "$IMAGE" \
+            '.containerDefinitions[0].image = $IMAGE |
+             del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)')
+
+          aws ecs register-task-definition \
+            --cli-input-json "$NEW_TASK_DEF"
+
+          echo "Deployed $IMAGE to $FAMILY"
+
+      - name: Deploy summary
+        run: |
+          echo "### Deployment Complete :rocket:" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Property | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|----------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Environment | ${{ steps.env.outputs.env }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Image | ${{ needs.build.outputs.image_tag }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Branch | ${{ github.ref_name }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Commit | ${{ github.sha }} |" >> "$GITHUB_STEP_SUMMARY"

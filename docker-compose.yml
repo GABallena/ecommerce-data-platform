@@ -1,0 +1,48 @@
+
+services:
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecommerce-pipeline
+    environment:
+      - PIPELINE_ENV=dev
+    volumes:
+      - ./*.csv:/app/data/:ro
+      - ./*.json:/app/data/:ro
+      - pipeline-logs:/app/pipeline/logs
+      - pipeline-raw:/app/pipeline/raw
+      - pipeline-warehouse:/app/pipeline/warehouse
+    command: ["pipeline/run_pipeline.py"]
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecommerce-dashboard
+    environment:
+      - PIPELINE_ENV=dev
+    volumes:
+      - pipeline-logs:/app/pipeline/logs:ro
+    command: ["pipeline/monitoring/dashboard.py"]
+    profiles:
+      - tools
+
+  quality:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecommerce-quality
+    environment:
+      - PIPELINE_ENV=dev
+    volumes:
+      - pipeline-logs:/app/pipeline/logs
+      - pipeline-warehouse:/app/pipeline/warehouse:ro
+    command: ["pipeline/quality/run_data_quality.py"]
+    profiles:
+      - tools
+
+volumes:
+  pipeline-logs:
+  pipeline-raw:
+  pipeline-warehouse:
