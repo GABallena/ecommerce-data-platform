@@ -16,13 +16,13 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from pipeline.ingestion import (
+from pipeline.ingestion import (  # noqa: E402
     PostgresIngestor,
     PaymentAPIIngestor,
     CSVMarketingIngestor,
     InventoryIngestor,
 )
-from pipeline.ingestion.base_ingestor import IngestionError
+from pipeline.ingestion.base_ingestor import IngestionError  # noqa: E402
 
 LOG_DIR = PROJECT_ROOT / "pipeline" / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -43,6 +43,7 @@ INGESTOR_MAP = {
     "marketing": CSVMarketingIngestor,
     "inventory": InventoryIngestor,
 }
+
 
 def validate_config(config: dict):
     """Fail fast if the config is malformed or references missing files."""
@@ -76,15 +77,23 @@ def validate_config(config: dict):
             f"{len(errors)} config validation error(s) — fix before running. "
             f"See log above for details."
         )
-    logger.info("Config validation passed (%d sources, %d entities)",
-                len(config["sources"]),
-                sum(len(s.get("entities", {})) for s in config["sources"].values()))
+    logger.info(
+        "Config validation passed (%d sources, %d entities)",
+        len(config["sources"]),
+        sum(len(s.get("entities", {})) for s in config["sources"].values()),
+    )
+
 
 def main():
     import argparse
+
     parser = argparse.ArgumentParser(description="Run ingestion pipeline")
-    parser.add_argument("--config", type=str, default=None,
-                        help="Path to ingestion config JSON (default: pipeline/configs/ingestion_config.json)")
+    parser.add_argument(
+        "--config",
+        type=str,
+        default=None,
+        help="Path to ingestion config JSON (default: pipeline/configs/ingestion_config.json)",
+    )
     args = parser.parse_args()
 
     if args.config:
@@ -148,26 +157,39 @@ def main():
                 fail_count += 1
 
     logger.info("=" * 60)
-    logger.info("INGESTION COMPLETE  success=%d  failed=%d  total=%d",
-                success_count, fail_count, success_count + fail_count)
+    logger.info(
+        "INGESTION COMPLETE  success=%d  failed=%d  total=%d",
+        success_count,
+        fail_count,
+        success_count + fail_count,
+    )
     logger.info("=" * 60)
 
     for r in results:
         status_icon = "✓" if r["status"] == "success" else "✗"
         dur = r.get("duration_seconds", "")
         dur_str = f"  {dur}s" if dur else ""
-        logger.info("  %s  %s/%-25s  rows=%-5s  %s%s",
-                     status_icon, r["source"], r["entity"],
-                     r["rows_ingested"], r["raw_path"] or r.get("error_message", ""),
-                     dur_str)
+        logger.info(
+            "  %s  %s/%-25s  rows=%-5s  %s%s",
+            status_icon,
+            r["source"],
+            r["entity"],
+            r["rows_ingested"],
+            r["raw_path"] or r.get("error_message", ""),
+            dur_str,
+        )
 
     if fail_count:
-        logger.error("PIPELINE FAILED — %d of %d entities failed. "
-                     "Check pipeline/logs/ingestion_log.csv for details.",
-                     fail_count, success_count + fail_count)
+        logger.error(
+            "PIPELINE FAILED — %d of %d entities failed. "
+            "Check pipeline/logs/ingestion_log.csv for details.",
+            fail_count,
+            success_count + fail_count,
+        )
         sys.exit(1)
     else:
         logger.info("ALL ENTITIES INGESTED SUCCESSFULLY")
+
 
 if __name__ == "__main__":
     main()

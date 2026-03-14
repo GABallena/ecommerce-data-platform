@@ -16,9 +16,12 @@ from typing import Any
 
 import pandas as pd
 
+
 class IngestionError(Exception):
     """Non-retryable ingestion failure (fail fast)."""
+
     pass
+
 
 logger = logging.getLogger("ingestion")
 
@@ -29,6 +32,7 @@ INGESTION_LOG_FILE = LOG_DIR / "ingestion_log.csv"
 
 RAW_ROOT.mkdir(parents=True, exist_ok=True)
 LOG_DIR.mkdir(parents=True, exist_ok=True)
+
 
 class IngestionLogEntry:
     """One row in the ingestion_log metadata table."""
@@ -59,7 +63,14 @@ class IngestionLogEntry:
         self.started_at = datetime.now(timezone.utc).isoformat()
         self.completed_at: str | None = None
 
-    def complete(self, status: str, rows: int, raw_path: str, schema_hash: str, schema_columns: str):
+    def complete(
+        self,
+        status: str,
+        rows: int,
+        raw_path: str,
+        schema_hash: str,
+        schema_columns: str,
+    ):
         self.status = status
         self.rows_ingested = rows
         self.raw_path = raw_path
@@ -97,6 +108,7 @@ class IngestionLogEntry:
             return round((e - s).total_seconds(), 3)
         return None
 
+
 class BaseIngestor:
     """
     Abstract base class for all ingestors.
@@ -119,8 +131,14 @@ class BaseIngestor:
         self.retry_delay = retry_delay
         self.retry_backoff = retry_backoff
 
-    _NON_RETRYABLE = (FileNotFoundError, PermissionError, IsADirectoryError,
-                      IngestionError, ValueError, KeyError)
+    _NON_RETRYABLE = (
+        FileNotFoundError,
+        PermissionError,
+        IsADirectoryError,
+        IngestionError,
+        ValueError,
+        KeyError,
+    )
 
     def ingest(
         self,
@@ -159,12 +177,20 @@ class BaseIngestor:
         while attempt <= self.max_retries:
             try:
                 if attempt > 0:
-                    logger.info("Retry %d/%d for %s/%s after %.1fs",
-                                attempt, self.max_retries, self.SOURCE_NAME, entity, delay)
+                    logger.info(
+                        "Retry %d/%d for %s/%s after %.1fs",
+                        attempt,
+                        self.max_retries,
+                        self.SOURCE_NAME,
+                        entity,
+                        delay,
+                    )
                     time.sleep(delay)
                     delay *= self.retry_backoff
 
-                logger.info("Reading %s/%s from %s", self.SOURCE_NAME, entity, source_file)
+                logger.info(
+                    "Reading %s/%s from %s", self.SOURCE_NAME, entity, source_file
+                )
                 df = self._read_source(source_file, entity=entity, **kwargs)
 
                 if df.empty:
@@ -187,35 +213,50 @@ class BaseIngestor:
                     schema_columns=schema_cols,
                 )
                 self._write_log(log_entry)
-                logger.info("✓ %s/%s — %d rows → %s  (%.3fs)",
-                            self.SOURCE_NAME, entity, len(df), raw_path,
-                            log_entry.duration_seconds or 0)
+                logger.info(
+                    "✓ %s/%s — %d rows → %s  (%.3fs)",
+                    self.SOURCE_NAME,
+                    entity,
+                    len(df),
+                    raw_path,
+                    log_entry.duration_seconds or 0,
+                )
                 return log_entry.as_dict()
 
             except self._NON_RETRYABLE as exc:
                 last_error = f"{type(exc).__name__}: {exc}"
-                logger.error("✗ %s/%s — non-retryable error (fail-fast): %s",
-                             self.SOURCE_NAME, entity, last_error)
+                logger.error(
+                    "✗ %s/%s — non-retryable error (fail-fast): %s",
+                    self.SOURCE_NAME,
+                    entity,
+                    last_error,
+                )
                 logger.debug("Traceback:\n%s", traceback.format_exc())
                 break
 
             except Exception as exc:
                 last_error = f"{type(exc).__name__}: {exc}"
-                logger.warning("Attempt %d failed for %s/%s: %s",
-                               attempt + 1, self.SOURCE_NAME, entity, last_error)
+                logger.warning(
+                    "Attempt %d failed for %s/%s: %s",
+                    attempt + 1,
+                    self.SOURCE_NAME,
+                    entity,
+                    last_error,
+                )
                 logger.debug("Traceback:\n%s", traceback.format_exc())
                 attempt += 1
 
         log_entry.fail(last_error)
         self._write_log(log_entry)
-        logger.error("✗ %s/%s — FAILED: %s",
-                     self.SOURCE_NAME, entity, last_error)
+        logger.error("✗ %s/%s — FAILED: %s", self.SOURCE_NAME, entity, last_error)
         return log_entry.as_dict()
 
     def _read_source(self, source_file: str | Path, **kwargs) -> pd.DataFrame:
         raise NotImplementedError
 
-    def _preflight_checks(self, source_file: str | Path, entity: str, partition_date: str):
+    def _preflight_checks(
+        self, source_file: str | Path, entity: str, partition_date: str
+    ):
         """Validate inputs before entering the retry loop."""
         source_path = Path(source_file)
 
@@ -223,7 +264,9 @@ class BaseIngestor:
             raise IngestionError(f"Source file does not exist: {source_path}")
 
         if source_path.is_dir():
-            raise IngestionError(f"Source path is a directory, not a file: {source_path}")
+            raise IngestionError(
+                f"Source path is a directory, not a file: {source_path}"
+            )
 
         if not os.access(source_path, os.R_OK):
             raise IngestionError(f"Source file is not readable: {source_path}")
@@ -261,7 +304,9 @@ class BaseIngestor:
         if previous and previous["hash"] != current_hash:
             logger.warning(
                 "⚠ SCHEMA DRIFT detected for %s\n  previous: %s\n  current:  %s",
-                key, previous["columns"], current_cols,
+                key,
+                previous["columns"],
+                current_cols,
             )
 
         registry[key] = {

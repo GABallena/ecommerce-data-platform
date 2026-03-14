@@ -16,6 +16,7 @@ RAW_ROOT = PROJECT_ROOT / "pipeline" / "raw"
 DB_PATH = PROJECT_ROOT / "pipeline" / "warehouse" / "warehouse.duckdb"
 SQL_DIR = PROJECT_ROOT / "pipeline" / "warehouse"
 
+
 class WarehouseEngine:
     def __init__(self, db_path: Path = DB_PATH):
         self.db_path = db_path
@@ -47,7 +48,6 @@ class WarehouseEngine:
 
     def run_sql(self, sql: str, description: str = "") -> None:
         """Execute raw SQL string."""
-        label = description or "inline-sql"
         sql = sql.replace("{{RAW_ROOT}}", str(RAW_ROOT))
         sql = sql.replace("{{PARTITION_DATE}}", self._partition_date or "")
         for statement in self._split_statements(sql):
@@ -92,7 +92,9 @@ class WarehouseEngine:
         ).fetchall()
         stats = []
         for (table_name,) in tables:
-            count = self.conn.execute(f"SELECT COUNT(*) FROM {schema}.{table_name}").fetchone()[0]
+            count = self.conn.execute(
+                f"SELECT COUNT(*) FROM {schema}.{table_name}"
+            ).fetchone()[0]
             stats.append({"schema": schema, "table": table_name, "row_count": count})
         return stats
 
@@ -115,13 +117,13 @@ class WarehouseEngine:
                 in_quote = False
                 quote_char = None
                 current.append(char)
-            elif char == ';' and not in_quote:
-                statements.append(''.join(current))
+            elif char == ";" and not in_quote:
+                statements.append("".join(current))
                 current = []
             else:
                 current.append(char)
         if current:
-            remainder = ''.join(current).strip()
+            remainder = "".join(current).strip()
             if remainder:
                 statements.append(remainder)
         return statements

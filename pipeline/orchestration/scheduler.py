@@ -13,6 +13,7 @@ from typing import Callable
 
 logger = logging.getLogger("orchestration.scheduler")
 
+
 class DailyScheduler:
     """
     Calls `run_fn()` once per calendar day at `run_hour_utc`.

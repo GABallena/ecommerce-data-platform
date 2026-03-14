@@ -8,6 +8,7 @@ import pandas as pd
 
 from .base_ingestor import BaseIngestor
 
+
 class InventoryIngestor(BaseIngestor):
     SOURCE_NAME = "inventory"
 

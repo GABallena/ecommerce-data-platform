@@ -27,6 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from pipeline.monitoring import get_dashboard_data
 
+
 def _table(rows: list[dict], columns: list[tuple[str, str, int]]) -> str:
     """
     Format rows into an ASCII table.
@@ -45,17 +46,19 @@ def _table(rows: list[dict], columns: list[tuple[str, str, int]]) -> str:
         for key, _, w in columns:
             val = str(row.get(key, ""))
             if len(val) > w:
-                val = val[:w-1] + "…"
+                val = val[: w - 1] + "…"
             cells.append(val.ljust(w))
         lines.append("  ".join(cells))
 
     return "\n".join(lines) + "\n"
+
 
 def _shorten_ts(ts: str) -> str:
     """Shorten ISO timestamp to readable form."""
     if not ts:
         return ""
     return ts[:19].replace("T", " ")
+
 
 def render_runs(data: dict) -> str:
     runs = data.get("pipeline_runs", [])
@@ -67,20 +70,28 @@ def render_runs(data: dict) -> str:
 
     for r in runs:
         r["run_ts_short"] = _shorten_ts(r.get("run_ts", ""))
-    lines.append(_table(runs, [
-        ("run_ts_short", "Timestamp", 20),
-        ("dag_id", "DAG", 18),
-        ("total_tasks", "Tasks", 6),
-        ("succeeded", "OK", 4),
-        ("failed", "Fail", 5),
-        ("elapsed_seconds", "Duration(s)", 12),
-    ]))
+    lines.append(
+        _table(
+            runs,
+            [
+                ("run_ts_short", "Timestamp", 20),
+                ("dag_id", "DAG", 18),
+                ("total_tasks", "Tasks", 6),
+                ("succeeded", "OK", 4),
+                ("failed", "Fail", 5),
+                ("elapsed_seconds", "Duration(s)", 12),
+            ],
+        )
+    )
 
     total = len(runs)
     failed_runs = sum(1 for r in runs if int(r.get("failed", 0)) > 0)
-    lines.append(f"  Total runs: {total}   Failed runs: {failed_runs}   "
-                 f"Success rate: {(total - failed_runs) / total * 100:.0f}%\n")
+    lines.append(
+        f"  Total runs: {total}   Failed runs: {failed_runs}   "
+        f"Success rate: {(total - failed_runs) / total * 100:.0f}%\n"
+    )
     return "\n".join(lines)
+
 
 def render_tasks(data: dict) -> str:
     tasks = data.get("task_history", [])
@@ -93,16 +104,22 @@ def render_tasks(data: dict) -> str:
     for t in tasks:
         t["start_short"] = _shorten_ts(t.get("start_time", ""))
 
-    lines.append(_table(tasks, [
-        ("pipeline_run_id", "Run ID", 16),
-        ("task_id", "Task", 20),
-        ("status", "Status", 16),
-        ("duration_seconds", "Duration(s)", 12),
-        ("attempts", "Attempts", 9),
-        ("start_short", "Started", 20),
-    ]))
+    lines.append(
+        _table(
+            tasks,
+            [
+                ("pipeline_run_id", "Run ID", 16),
+                ("task_id", "Task", 20),
+                ("status", "Status", 16),
+                ("duration_seconds", "Duration(s)", 12),
+                ("attempts", "Attempts", 9),
+                ("start_short", "Started", 20),
+            ],
+        )
+    )
 
     from collections import defaultdict
+
     durations = defaultdict(list)
     for t in tasks:
         try:
@@ -119,6 +136,7 @@ def render_tasks(data: dict) -> str:
 
     return "\n".join(lines)
 
+
 def render_failures(data: dict) -> str:
     failures = data.get("failures", [])
     lines = ["\n═══ FAILURE LOG ═══\n"]
@@ -132,15 +150,21 @@ def render_failures(data: dict) -> str:
         err = f.get("error", "")
         f["error_short"] = err[:60] + "…" if len(err) > 60 else err
 
-    lines.append(_table(failures, [
-        ("ts_short", "Timestamp", 20),
-        ("pipeline_run_id", "Run ID", 16),
-        ("task_id", "Task", 20),
-        ("status", "Status", 16),
-        ("attempts", "Attempts", 9),
-        ("error_short", "Error", 60),
-    ]))
+    lines.append(
+        _table(
+            failures,
+            [
+                ("ts_short", "Timestamp", 20),
+                ("pipeline_run_id", "Run ID", 16),
+                ("task_id", "Task", 20),
+                ("status", "Status", 16),
+                ("attempts", "Attempts", 9),
+                ("error_short", "Error", 60),
+            ],
+        )
+    )
     return "\n".join(lines)
+
 
 def render_ingestion(data: dict) -> str:
     vols = data.get("ingestion_volumes", [])
@@ -157,16 +181,22 @@ def render_ingestion(data: dict) -> str:
     for v in success:
         v["ts_short"] = _shorten_ts(v.get("completed_at", v.get("started_at", "")))
 
-    lines.append(_table(success, [
-        ("run_id", "Run ID", 16),
-        ("source", "Source", 12),
-        ("entity", "Entity", 22),
-        ("rows_ingested", "Rows", 8),
-        ("duration_seconds", "Duration(s)", 12),
-        ("ts_short", "Completed", 20),
-    ]))
+    lines.append(
+        _table(
+            success,
+            [
+                ("run_id", "Run ID", 16),
+                ("source", "Source", 12),
+                ("entity", "Entity", 22),
+                ("rows_ingested", "Rows", 8),
+                ("duration_seconds", "Duration(s)", 12),
+                ("ts_short", "Completed", 20),
+            ],
+        )
+    )
 
     from collections import defaultdict
+
     src_totals = defaultdict(int)
     for v in success:
         try:
@@ -183,6 +213,7 @@ def render_ingestion(data: dict) -> str:
 
     return "\n".join(lines)
 
+
 def render_dq(data: dict) -> str:
     history = data.get("dq_history", [])
     latest = data.get("latest_dq_report")
@@ -197,18 +228,23 @@ def render_dq(data: dict) -> str:
         try:
             total = int(h.get("total", 0))
             passed = int(h.get("passed", 0))
-            h["pass_rate"] = f"{passed/total*100:.0f}%" if total else "N/A"
+            h["pass_rate"] = f"{passed / total * 100:.0f}%" if total else "N/A"
         except (ValueError, ZeroDivisionError):
             h["pass_rate"] = "N/A"
 
-    lines.append(_table(history, [
-        ("run_id", "Run ID", 16),
-        ("ts_short", "Timestamp", 20),
-        ("total", "Total", 6),
-        ("passed", "Passed", 7),
-        ("failed", "Failed", 7),
-        ("pass_rate", "Rate", 6),
-    ]))
+    lines.append(
+        _table(
+            history,
+            [
+                ("run_id", "Run ID", 16),
+                ("ts_short", "Timestamp", 20),
+                ("total", "Total", 6),
+                ("passed", "Passed", 7),
+                ("failed", "Failed", 7),
+                ("pass_rate", "Rate", 6),
+            ],
+        )
+    )
 
     if latest and latest.get("failed", 0) > 0:
         lines.append("  Latest failures:")
@@ -219,9 +255,12 @@ def render_dq(data: dict) -> str:
                     lines.append(f"       → {c['details']}")
         lines.append("")
     elif latest:
-        lines.append(f"  Latest run: all {latest.get('total_checks', '?')} checks passed ✓\n")
+        lines.append(
+            f"  Latest run: all {latest.get('total_checks', '?')} checks passed ✓\n"
+        )
 
     return "\n".join(lines)
+
 
 SECTIONS = {
     "runs": render_runs,
@@ -231,12 +270,13 @@ SECTIONS = {
     "dq": render_dq,
 }
 
+
 def main():
     parser = argparse.ArgumentParser(description="Pipeline Monitoring Dashboard")
-    parser.add_argument("--section", choices=list(SECTIONS.keys()),
-                        help="Show only a specific section")
-    parser.add_argument("--json", action="store_true",
-                        help="Output raw data as JSON")
+    parser.add_argument(
+        "--section", choices=list(SECTIONS.keys()), help="Show only a specific section"
+    )
+    parser.add_argument("--json", action="store_true", help="Output raw data as JSON")
     args = parser.parse_args()
 
     data = get_dashboard_data()
@@ -256,6 +296,7 @@ def main():
             print(render_fn(data))
 
     print("═" * 60 + "\n")
+
 
 if __name__ == "__main__":
     main()

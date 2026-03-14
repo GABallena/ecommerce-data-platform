@@ -1,5 +1,5 @@
-from .base_ingestor import BaseIngestor
-from .postgres_ingestor import PostgresIngestor
-from .payment_api_ingestor import PaymentAPIIngestor
-from .csv_marketing_ingestor import CSVMarketingIngestor
-from .inventory_ingestor import InventoryIngestor
+from .base_ingestor import BaseIngestor as BaseIngestor
+from .postgres_ingestor import PostgresIngestor as PostgresIngestor
+from .payment_api_ingestor import PaymentAPIIngestor as PaymentAPIIngestor
+from .csv_marketing_ingestor import CSVMarketingIngestor as CSVMarketingIngestor
+from .inventory_ingestor import InventoryIngestor as InventoryIngestor

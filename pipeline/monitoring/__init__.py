@@ -28,20 +28,28 @@ INGESTION_LOG = LOG_DIR / "ingestion_log.csv"
 DQ_HISTORY = LOG_DIR / "dq_reports" / "dq_history.csv"
 FAILURE_LOG = LOG_DIR / "failure_log.csv"
 
+
 class PipelineMonitor:
     """Collects metrics from a DAG run and persists them."""
 
     def __init__(self, pipeline_run_id: str | None = None):
-        self.pipeline_run_id = pipeline_run_id or datetime.now(
-            timezone.utc
-        ).strftime("%Y%m%dT%H%M%S")
+        self.pipeline_run_id = pipeline_run_id or datetime.now(timezone.utc).strftime(
+            "%Y%m%dT%H%M%S"
+        )
 
     def log_task_results(self, dag_id: str, results: dict):
         """Persist one row per task with full timing + status detail."""
         header = [
-            "pipeline_run_id", "run_ts", "dag_id", "task_id",
-            "status", "start_time", "end_time", "duration_seconds",
-            "attempts", "error",
+            "pipeline_run_id",
+            "run_ts",
+            "dag_id",
+            "task_id",
+            "status",
+            "start_time",
+            "end_time",
+            "duration_seconds",
+            "attempts",
+            "error",
         ]
         write_header = not TASK_HISTORY.exists()
 
@@ -50,21 +58,26 @@ class PipelineMonitor:
             if write_header:
                 writer.writerow(header)
             for tid, r in results.items():
-                writer.writerow([
-                    self.pipeline_run_id,
-                    datetime.now(timezone.utc).isoformat(),
-                    dag_id,
-                    tid,
-                    r.status.value,
-                    r.start_time.isoformat() if r.start_time else "",
-                    r.end_time.isoformat() if r.end_time else "",
-                    f"{r.duration_seconds:.3f}",
-                    r.attempts,
-                    r.error[:500] if r.error else "",
-                ])
+                writer.writerow(
+                    [
+                        self.pipeline_run_id,
+                        datetime.now(timezone.utc).isoformat(),
+                        dag_id,
+                        tid,
+                        r.status.value,
+                        r.start_time.isoformat() if r.start_time else "",
+                        r.end_time.isoformat() if r.end_time else "",
+                        f"{r.duration_seconds:.3f}",
+                        r.attempts,
+                        r.error[:500] if r.error else "",
+                    ]
+                )
 
-        logger.info("Task history logged: %d tasks for run %s",
-                     len(results), self.pipeline_run_id)
+        logger.info(
+            "Task history logged: %d tasks for run %s",
+            len(results),
+            self.pipeline_run_id,
+        )
 
     def log_failures(self, dag_id: str, results: dict):
         """Log failed tasks to a dedicated failure log."""
@@ -73,8 +86,13 @@ class PipelineMonitor:
             return
 
         header = [
-            "pipeline_run_id", "failure_ts", "dag_id", "task_id",
-            "status", "attempts", "error",
+            "pipeline_run_id",
+            "failure_ts",
+            "dag_id",
+            "task_id",
+            "status",
+            "attempts",
+            "error",
         ]
         write_header = not FAILURE_LOG.exists()
 
@@ -83,18 +101,23 @@ class PipelineMonitor:
             if write_header:
                 writer.writerow(header)
             for tid, r in failed.items():
-                writer.writerow([
-                    self.pipeline_run_id,
-                    datetime.now(timezone.utc).isoformat(),
-                    dag_id,
-                    tid,
-                    r.status.value,
-                    r.attempts,
-                    r.error[:500] if r.error else "",
-                ])
+                writer.writerow(
+                    [
+                        self.pipeline_run_id,
+                        datetime.now(timezone.utc).isoformat(),
+                        dag_id,
+                        tid,
+                        r.status.value,
+                        r.attempts,
+                        r.error[:500] if r.error else "",
+                    ]
+                )
 
-        logger.warning("Failures logged: %d task(s) failed in run %s",
-                        len(failed), self.pipeline_run_id)
+        logger.warning(
+            "Failures logged: %d task(s) failed in run %s",
+            len(failed),
+            self.pipeline_run_id,
+        )
 
     def get_ingestion_volumes(self) -> list[dict]:
         """Read ingestion_log.csv and return volume summary per source/entity."""
@@ -106,15 +129,18 @@ class PipelineMonitor:
             reader = csv.DictReader(f)
             for row in reader:
                 if row.get("status") == "success":
-                    volumes.append({
-                        "run_id": row.get("run_id", ""),
-                        "source": row.get("source", ""),
-                        "entity": row.get("entity", ""),
-                        "rows": int(row.get("rows_ingested", 0)),
-                        "duration": float(row.get("duration_seconds", 0)),
-                        "timestamp": row.get("completed_at", ""),
-                    })
+                    volumes.append(
+                        {
+                            "run_id": row.get("run_id", ""),
+                            "source": row.get("source", ""),
+                            "entity": row.get("entity", ""),
+                            "rows": int(row.get("rows_ingested", 0)),
+                            "duration": float(row.get("duration_seconds", 0)),
+                            "timestamp": row.get("completed_at", ""),
+                        }
+                    )
         return volumes
+
 
 def _read_csv(path: Path) -> list[dict]:
     """Read a CSV into a list of dicts (empty list if file missing)."""
@@ -122,6 +148,7 @@ def _read_csv(path: Path) -> list[dict]:
         return []
     with open(path) as f:
         return list(csv.DictReader(f))
+
 
 def get_dashboard_data() -> dict[str, Any]:
     """Assemble all monitoring data for the dashboard."""

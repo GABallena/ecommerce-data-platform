@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from pipeline.quality import DataQualityEngine, DQReport, write_report
 
+
 def main() -> DQReport:
     logging.basicConfig(
         level=logging.INFO,
@@ -39,6 +40,7 @@ def main() -> DQReport:
         print(f"All {report.total} checks passed.")
 
     return report
+
 
 if __name__ == "__main__":
     main()

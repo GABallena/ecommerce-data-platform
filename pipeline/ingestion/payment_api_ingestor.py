@@ -10,6 +10,7 @@ import pandas as pd
 
 from .base_ingestor import BaseIngestor
 
+
 class PaymentAPIIngestor(BaseIngestor):
     SOURCE_NAME = "payments"
 

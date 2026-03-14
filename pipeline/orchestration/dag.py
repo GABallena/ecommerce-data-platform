@@ -8,13 +8,13 @@ tracks status/duration per task, and supports retries with exponential back-off.
 import enum
 import logging
 import time
-import traceback
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Callable
 
 logger = logging.getLogger("orchestration")
+
 
 class TaskStatus(enum.Enum):
     PENDING = "pending"
@@ -23,6 +23,7 @@ class TaskStatus(enum.Enum):
     FAILED = "failed"
     SKIPPED = "skipped"
     UPSTREAM_FAILED = "upstream_failed"
+
 
 @dataclass
 class TaskResult:
@@ -38,9 +39,11 @@ class TaskResult:
     def succeeded(self) -> bool:
         return self.status == TaskStatus.SUCCESS
 
+
 @dataclass
 class Task:
     """A single unit of work in the DAG."""
+
     task_id: str
     callable: Callable[..., None]
     kwargs: dict = field(default_factory=dict)
@@ -50,9 +53,12 @@ class Task:
     retry_backoff: float = 2.0
     result: TaskResult | None = None
 
+
 class DAGValidationError(Exception):
     """Raised when the DAG has cycles or missing deps."""
+
     pass
+
 
 class DAG:
     """
@@ -107,7 +113,9 @@ class DAG:
                     queue.append(child)
 
         if visited != len(all_ids):
-            raise DAGValidationError("DAG contains a cycle — cannot determine execution order")
+            raise DAGValidationError(
+                "DAG contains a cycle — cannot determine execution order"
+            )
 
     def execution_order(self) -> list[str]:
         """Return task_ids in topologically sorted order (stable)."""
@@ -154,7 +162,9 @@ class DAG:
                 results[task_id] = result
                 task.result = result
                 failed_tasks.add(task_id)
-                logger.warning("⊘ SKIP  %-30s  (upstream failed: %s)", task_id, upstream_failed)
+                logger.warning(
+                    "⊘ SKIP  %-30s  (upstream failed: %s)", task_id, upstream_failed
+                )
                 continue
 
             result = self._execute_with_retry(task)
@@ -167,12 +177,27 @@ class DAG:
         success = sum(1 for r in results.values() if r.succeeded)
         failed = len(results) - success
         logger.info("=" * 60)
-        logger.info("DAG COMPLETE  success=%d  failed=%d  total=%d", success, failed, len(results))
+        logger.info(
+            "DAG COMPLETE  success=%d  failed=%d  total=%d",
+            success,
+            failed,
+            len(results),
+        )
         for tid in order:
             r = results[tid]
-            icon = "✓" if r.succeeded else ("⊘" if r.status == TaskStatus.UPSTREAM_FAILED else "✗")
-            logger.info("  %s  %-30s  %s  %.3fs  attempts=%d",
-                        icon, tid, r.status.value, r.duration_seconds, r.attempts)
+            icon = (
+                "✓"
+                if r.succeeded
+                else ("⊘" if r.status == TaskStatus.UPSTREAM_FAILED else "✗")
+            )
+            logger.info(
+                "  %s  %-30s  %s  %.3fs  attempts=%d",
+                icon,
+                tid,
+                r.status.value,
+                r.duration_seconds,
+                r.attempts,
+            )
         logger.info("=" * 60)
 
         return results
@@ -186,26 +211,48 @@ class DAG:
         for attempt in range(1, task.max_retries + 1):
             result.attempts = attempt
             try:
-                logger.info("▶ RUN   %-30s  attempt %d/%d", task.task_id, attempt, task.max_retries)
+                logger.info(
+                    "▶ RUN   %-30s  attempt %d/%d",
+                    task.task_id,
+                    attempt,
+                    task.max_retries,
+                )
                 task.callable(**task.kwargs)
                 result.status = TaskStatus.SUCCESS
                 result.end_time = datetime.now(timezone.utc)
-                result.duration_seconds = (result.end_time - result.start_time).total_seconds()
-                logger.info("✓ DONE  %-30s  %.3fs", task.task_id, result.duration_seconds)
+                result.duration_seconds = (
+                    result.end_time - result.start_time
+                ).total_seconds()
+                logger.info(
+                    "✓ DONE  %-30s  %.3fs", task.task_id, result.duration_seconds
+                )
                 return result
             except Exception as exc:
                 err_msg = f"{type(exc).__name__}: {exc}"
                 result.error = err_msg
-                logger.error("✗ FAIL  %-30s  attempt %d/%d  %s",
-                             task.task_id, attempt, task.max_retries, err_msg)
+                logger.error(
+                    "✗ FAIL  %-30s  attempt %d/%d  %s",
+                    task.task_id,
+                    attempt,
+                    task.max_retries,
+                    err_msg,
+                )
                 if attempt < task.max_retries:
-                    logger.info("  ↻ retrying in %.1fs (backoff=%.1f×)", delay, task.retry_backoff)
+                    logger.info(
+                        "  ↻ retrying in %.1fs (backoff=%.1f×)",
+                        delay,
+                        task.retry_backoff,
+                    )
                     time.sleep(delay)
                     delay *= task.retry_backoff
 
         result.status = TaskStatus.FAILED
         result.end_time = datetime.now(timezone.utc)
         result.duration_seconds = (result.end_time - result.start_time).total_seconds()
-        logger.error("✗ EXHAUSTED  %-30s  after %d attempts: %s",
-                     task.task_id, task.max_retries, result.error)
+        logger.error(
+            "✗ EXHAUSTED  %-30s  after %d attempts: %s",
+            task.task_id,
+            task.max_retries,
+            result.error,
+        )
         return result

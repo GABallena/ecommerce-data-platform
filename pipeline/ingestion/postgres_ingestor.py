@@ -9,6 +9,7 @@ import pandas as pd
 
 from .base_ingestor import BaseIngestor
 
+
 class PostgresIngestor(BaseIngestor):
     SOURCE_NAME = "postgres"
 
