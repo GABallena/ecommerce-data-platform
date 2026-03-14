@@ -1,0 +1,4 @@
+po_id,supplier_id,sku,ordered_qty,received_qty,unit_cost,po_status,created_at,expected_delivery_date
+700001,501,SKU-RED-42,100,100,72.50,received,2026-02-20T07:12:00Z,2026-02-28
+700002,502,SKU-BAG-URB,40,20,1100.00,partial,2026-03-02T09:30:00Z,2026-03-14
+700003,501,SKU-MUG-WHT,300,0,12.00,open,2026-03-09T16:40:00Z,2026-03-16

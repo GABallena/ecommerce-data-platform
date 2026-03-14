@@ -1,0 +1,4 @@
+send_date,campaign_id,campaign_name,recipient_email,customer_id,delivery_status,open_flag,click_flag,unsubscribe_flag,load_filename,loaded_at
+2026-03-10,EM-NEWS-0310,March Newsletter,jane.doe@example.com,92811,delivered,true,true,false,email_sends_20260310.csv,2026-03-11T01:12:00Z
+2026-03-10,EM-NEWS-0310,March Newsletter,miguel.santos@example.ph,77102,delivered,true,false,false,email_sends_20260310.csv,2026-03-11T01:12:00Z
+2026-03-10,EM-NEWS-0310,March Newsletter,sam.lee@example.com,88201,bounced,false,false,false,email_sends_20260310.csv,2026-03-11T01:12:00Z

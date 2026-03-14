@@ -1,0 +1,6 @@
+order_item_id,order_id,product_id,sku,product_name,quantity,unit_price,discount_amount,line_total
+9001001,4500192,12001,SKU-RED-42,Red Running Shoes,1,139.99,10.00,129.99
+9001002,4500193,13005,SKU-TEE-BLK,Lifestyle Tee Black,1,79.99,0.00,79.99
+9001003,4500194,21011,SKU-BAG-URB,Urban Commuter Bag,1,2499.00,250.00,2249.00
+9001004,4500195,15091,SKU-MUG-WHT,Ceramic Mug White,1,49.99,0.00,49.99
+9001005,4500196,15091,SKU-MUG-WHT,Ceramic Mug White,1,49.99,0.00,49.99

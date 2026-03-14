@@ -1,0 +1,4 @@
+campaign_date,platform,campaign_id,campaign_name,channel,impressions,clicks,spend,conversions,reported_revenue,country_code,device_type,load_filename,loaded_at
+2026-03-10,meta,META-001,Spring Launch Retargeting,paid_social,120000,4100,1850.50,91,8430.00,US,mobile,campaign_performance_20260310.csv,2026-03-11T01:10:00Z
+2026-03-10,google,GG-SEM-22,Brand Search March,paid_search,45000,5200,2100.75,144,13220.00,US,desktop,campaign_performance_20260310.csv,2026-03-11T01:10:00Z
+2026-03-10,tiktok,TT-778,Weekend Lifestyle Push,paid_social,98000,3001,999.20,52,4880.00,PH,mobile,campaign_performance_20260310.csv,2026-03-11T01:10:00Z

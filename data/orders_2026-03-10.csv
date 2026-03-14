@@ -1,0 +1,6 @@
+order_id,customer_id,order_date,order_status,currency,subtotal_amount,discount_amount,shipping_amount,tax_amount,total_amount,payment_status,shipping_address_id,billing_address_id,updated_at
+4500192,92811,2026-03-10T09:12:44Z,completed,USD,139.99,10.00,12.00,8.00,149.99,paid,70021,70021,2026-03-10T09:16:03Z
+4500193,92811,2026-03-10T10:01:11Z,cancelled,USD,79.99,0.00,8.00,4.80,92.79,voided,70021,70021,2026-03-10T10:05:55Z
+4500194,77102,2026-03-10T10:22:18Z,completed,PHP,2499.00,250.00,120.00,257.88,2626.88,paid,70102,70102,2026-03-10T10:25:10Z
+4500195,88201,2026-03-10T11:44:02Z,completed,USD,49.99,0.00,5.00,3.30,58.29,pending,70218,70218,2026-03-10T11:44:45Z
+4500196,88201,2026-03-10T11:59:17Z,completed,USD,49.99,0.00,5.00,3.30,58.29,paid,70218,70218,2026-03-10T12:03:02Z

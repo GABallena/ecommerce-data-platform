@@ -1,0 +1,5 @@
+product_id,sku,product_name,category,brand,unit_cost,list_price,is_active,created_at
+12001,SKU-RED-42,Red Running Shoes,running shoes,Northpeak,72.50,139.99,true,2024-08-01T00:00:00Z
+13005,SKU-TEE-BLK,Lifestyle Tee Black,apparel,Northpeak,18.00,79.99,true,2024-08-01T00:00:00Z
+21011,SKU-BAG-URB,Urban Commuter Bag,bags / urban,Transit,1100.00,2499.00,true,2025-02-11T00:00:00Z
+15091,SKU-MUG-WHT,Ceramic Mug White,homewares,Northpeak,12.00,49.99,true,2025-05-09T00:00:00Z

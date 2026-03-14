@@ -1,0 +1,5 @@
+customer_id,email,first_name,last_name,phone,created_at,country_code,status,marketing_opt_in
+92811,jane.doe@example.com,Jane,Doe,+12025550101,2024-11-12T04:10:22Z,US,active,true
+77102,miguel.santos@example.ph,Miguel,Santos,+639171234567,2025-01-05T08:11:03Z,PH,active,true
+88201,sam.lee@example.com,Sam,Lee,,2025-09-17T14:23:18Z,US,active,false
+88202,sam.lee@example.com,Sam,Lee,,2025-09-17T14:24:01Z,US,active,false
