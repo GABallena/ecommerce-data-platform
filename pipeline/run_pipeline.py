@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
-"""
-run_pipeline.py — Full pipeline orchestration entry point.
 
-Builds the DAG:  ingest → build_warehouse → data_quality_checks
-Executes tasks in topological order with retries + exponential back-off.
-Sends failure alerts via configured channels.
-
-Usage:
-    python pipeline/run_pipeline.py                  # single run (default)
-    python pipeline/run_pipeline.py --schedule       # daily scheduler loop
-    python pipeline/run_pipeline.py --schedule --hour 3 --minute 30
-"""
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
 
 import argparse
 import json
@@ -24,10 +25,10 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from pipeline.orchestration.dag import DAG, Task  # noqa: E402
-from pipeline.orchestration.alerts import send_alert, format_dag_failure_alert  # noqa: E402
-from pipeline.orchestration.scheduler import DailyScheduler  # noqa: E402
-from pipeline.monitoring import PipelineMonitor  # noqa: E402
+from pipeline.orchestration.dag import DAG, Task
+from pipeline.orchestration.alerts import send_alert, format_dag_failure_alert
+from pipeline.orchestration.scheduler import DailyScheduler
+from pipeline.monitoring import PipelineMonitor
 
 LOG_DIR = PROJECT_ROOT / "pipeline" / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -45,24 +46,20 @@ logger = logging.getLogger("orchestration")
 CONFIG_PATH = PROJECT_ROOT / "pipeline" / "configs" / "ingestion_config.json"
 PIPELINE_HISTORY_LOG = LOG_DIR / "pipeline_history.csv"
 
-
 def load_config() -> dict:
     with open(CONFIG_PATH) as f:
         return json.load(f)
 
-
 def task_ingest(**kwargs):
-    """Run the ingestion layer via run_ingestion.py as a subprocess."""
+    \
     _run_module("pipeline.run_ingestion", "ingestion")
 
-
 def task_build_warehouse(**kwargs):
-    """Run the warehouse build (Bronze → Silver → Gold) via run_warehouse.py."""
+    \
     _run_module("pipeline.run_warehouse", "warehouse")
 
-
 def task_data_quality(**kwargs):
-    """Run the full data quality system (workstream 5)."""
+    \
     from pipeline.quality import DataQualityEngine, write_report
 
     engine = DataQualityEngine()
@@ -78,9 +75,8 @@ def task_data_quality(**kwargs):
             "See pipeline/logs/dq_reports/ for details."
         )
 
-
 def _run_module(module: str, label: str):
-    """Execute a Python module as subprocess so it gets a clean process + exit code."""
+    \
     cmd = [sys.executable, "-m", module]
     logger.info("Spawning: %s", " ".join(cmd))
     result = subprocess.run(
@@ -102,9 +98,8 @@ def _run_module(module: str, label: str):
             f"See pipeline/logs/{label}_run.log for details."
         )
 
-
 def _log_pipeline_run(dag_id: str, results: dict, elapsed: float):
-    """Append one row per run to pipeline_history.csv."""
+    \
     import csv
 
     header = [
@@ -135,13 +130,12 @@ def _log_pipeline_run(dag_id: str, results: dict, elapsed: float):
             ]
         )
 
-
 def build_dag() -> DAG:
-    """
-    Define the pipeline DAG:
-
-        ingest  →  build_warehouse  →  data_quality
-    """
+    \
+\
+\
+\
+\
     config = load_config()
     retry_cfg = config.get("retry", {})
 
@@ -182,9 +176,8 @@ def build_dag() -> DAG:
 
     return dag
 
-
 def run_once():
-    """Execute the full pipeline DAG once."""
+    \
     monitor = PipelineMonitor()
     dag = build_dag()
     start = time.time()
@@ -203,7 +196,6 @@ def run_once():
         sys.exit(1)
     else:
         logger.info("Pipeline completed successfully in %.3fs", elapsed)
-
 
 def main():
     parser = argparse.ArgumentParser(description="E-Commerce Pipeline Orchestrator")
@@ -232,7 +224,6 @@ def main():
         scheduler.start()
     else:
         run_once()
-
 
 if __name__ == "__main__":
     main()

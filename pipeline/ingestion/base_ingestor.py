@@ -1,7 +1,7 @@
-"""
-Base ingestor with retry logic, schema detection, ingestion logging,
-and partitioned raw-zone writes.
-"""
+\
+\
+\
+\
 
 import csv
 import hashlib
@@ -16,12 +16,10 @@ from typing import Any
 
 import pandas as pd
 
-
 class IngestionError(Exception):
-    """Non-retryable ingestion failure (fail fast)."""
+\
 
     pass
-
 
 logger = logging.getLogger("ingestion")
 
@@ -33,9 +31,8 @@ INGESTION_LOG_FILE = LOG_DIR / "ingestion_log.csv"
 RAW_ROOT.mkdir(parents=True, exist_ok=True)
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
-
 class IngestionLogEntry:
-    """One row in the ingestion_log metadata table."""
+\
 
     def __init__(
         self,
@@ -108,14 +105,13 @@ class IngestionLogEntry:
             return round((e - s).total_seconds(), 3)
         return None
 
-
 class BaseIngestor:
-    """
-    Abstract base class for all ingestors.
-
-    Subclasses must implement:
-        _read_source(source_file, **kwargs) -> pd.DataFrame
-    """
+\
+\
+\
+\
+\
+\
 
     SOURCE_NAME: str = "unknown"
 
@@ -148,11 +144,11 @@ class BaseIngestor:
         run_id: str | None = None,
         **kwargs: Any,
     ) -> dict:
-        """
-        End-to-end ingestion with retry, schema detection, logging.
-
-        Returns the log entry dict.
-        """
+        \
+\
+\
+\
+\
         run_id = run_id or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
         log_entry = IngestionLogEntry(
             run_id=run_id,
@@ -257,7 +253,7 @@ class BaseIngestor:
     def _preflight_checks(
         self, source_file: str | Path, entity: str, partition_date: str
     ):
-        """Validate inputs before entering the retry loop."""
+        \
         source_path = Path(source_file)
 
         if not source_path.exists():
@@ -286,12 +282,12 @@ class BaseIngestor:
 
     @staticmethod
     def _compute_schema_hash(df: pd.DataFrame) -> str:
-        """Deterministic hash of column names + dtypes."""
+        \
         sig = "|".join(f"{c}:{df[c].dtype}" for c in df.columns)
         return hashlib.sha256(sig.encode()).hexdigest()[:16]
 
     def _detect_schema_drift(self, entity: str, current_hash: str, current_cols: str):
-        """Compare against the last recorded schema hash for this entity."""
+        \
         schema_registry = LOG_DIR / "schema_registry.json"
         registry: dict = {}
         if schema_registry.exists():
@@ -318,7 +314,7 @@ class BaseIngestor:
             json.dump(registry, f, indent=2)
 
     def _write_raw(self, df: pd.DataFrame, entity: str, partition_date: str) -> Path:
-        """Write df to raw/<source>/<entity>/dt=<date>/data.parquet"""
+        \
         dest_dir = self.raw_root / self.SOURCE_NAME / entity / f"dt={partition_date}"
         dest_dir.mkdir(parents=True, exist_ok=True)
         dest_file = dest_dir / "data.parquet"
@@ -327,7 +323,7 @@ class BaseIngestor:
 
     @staticmethod
     def _write_log(entry: IngestionLogEntry):
-        """Append one row to the CSV ingestion log."""
+        \
         row = entry.as_dict()
         file_exists = INGESTION_LOG_FILE.exists()
 

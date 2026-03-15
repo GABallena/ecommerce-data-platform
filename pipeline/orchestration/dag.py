@@ -1,9 +1,9 @@
-"""
-dag.py — Lightweight pipeline DAG engine.
-
-Defines tasks with dependencies, enforces execution order via topological sort,
-tracks status/duration per task, and supports retries with exponential back-off.
-"""
+\
+\
+\
+\
+\
+\
 
 import enum
 import logging
@@ -15,7 +15,6 @@ from typing import Callable
 
 logger = logging.getLogger("orchestration")
 
-
 class TaskStatus(enum.Enum):
     PENDING = "pending"
     RUNNING = "running"
@@ -23,7 +22,6 @@ class TaskStatus(enum.Enum):
     FAILED = "failed"
     SKIPPED = "skipped"
     UPSTREAM_FAILED = "upstream_failed"
-
 
 @dataclass
 class TaskResult:
@@ -39,10 +37,9 @@ class TaskResult:
     def succeeded(self) -> bool:
         return self.status == TaskStatus.SUCCESS
 
-
 @dataclass
 class Task:
-    """A single unit of work in the DAG."""
+\
 
     task_id: str
     callable: Callable[..., None]
@@ -53,22 +50,20 @@ class Task:
     retry_backoff: float = 2.0
     result: TaskResult | None = None
 
-
 class DAGValidationError(Exception):
-    """Raised when the DAG has cycles or missing deps."""
+\
 
     pass
 
-
 class DAG:
-    """
-    Directed Acyclic Graph for pipeline orchestration.
-
-    Supports:
-      - Topological ordering with dependency resolution (4.1, 4.4)
-      - Retries with exponential back-off per task (4.5)
-      - Status tracking per task for alerting (4.3)
-    """
+\
+\
+\
+\
+\
+\
+\
+\
 
     def __init__(self, dag_id: str = "pipeline"):
         self.dag_id = dag_id
@@ -85,7 +80,7 @@ class DAG:
         return list(self._tasks.keys())
 
     def validate(self) -> None:
-        """Check for missing dependencies and cycles."""
+        \
         all_ids = set(self._tasks.keys())
 
         for task in self._tasks.values():
@@ -118,7 +113,7 @@ class DAG:
             )
 
     def execution_order(self) -> list[str]:
-        """Return task_ids in topologically sorted order (stable)."""
+        \
         self.validate()
         in_degree: dict[str, int] = {tid: 0 for tid in self._tasks}
         adj: dict[str, list[str]] = defaultdict(list)
@@ -139,7 +134,7 @@ class DAG:
         return order
 
     def run(self) -> dict[str, TaskResult]:
-        """Execute all tasks respecting dependencies. Returns results map."""
+        \
         order = self.execution_order()
         results: dict[str, TaskResult] = {}
         failed_tasks: set[str] = set()
@@ -203,7 +198,7 @@ class DAG:
         return results
 
     def _execute_with_retry(self, task: Task) -> TaskResult:
-        """Run a single task with exponential back-off retries."""
+        \
         result = TaskResult(task_id=task.task_id, status=TaskStatus.RUNNING)
         result.start_time = datetime.now(timezone.utc)
         delay = task.retry_delay

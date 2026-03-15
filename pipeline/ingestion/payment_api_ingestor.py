@@ -1,7 +1,7 @@
-"""
-Ingestor for payment provider API responses (JSON).
-Simulates pulling from a Stripe-like payments API.
-"""
+\
+\
+\
+\
 
 import json
 from pathlib import Path
@@ -9,7 +9,6 @@ from pathlib import Path
 import pandas as pd
 
 from .base_ingestor import BaseIngestor
-
 
 class PaymentAPIIngestor(BaseIngestor):
     SOURCE_NAME = "payments"

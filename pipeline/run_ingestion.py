@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""
-run_ingestion.py — Entry point for the data ingestion layer.
 
-Reads pipeline/configs/ingestion_config.json and runs all ingestors,
-landing data into pipeline/raw/<source>/<entity>/dt=<date>/data.parquet
-with full schema detection, retry logic, and ingestion logging.
-"""
+\
+\
+\
+\
+\
+\
+\
 
 import json
 import logging
@@ -16,13 +17,13 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from pipeline.ingestion import (  # noqa: E402
+from pipeline.ingestion import (
     PostgresIngestor,
     PaymentAPIIngestor,
     CSVMarketingIngestor,
     InventoryIngestor,
 )
-from pipeline.ingestion.base_ingestor import IngestionError  # noqa: E402
+from pipeline.ingestion.base_ingestor import IngestionError
 
 LOG_DIR = PROJECT_ROOT / "pipeline" / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -44,9 +45,8 @@ INGESTOR_MAP = {
     "inventory": InventoryIngestor,
 }
 
-
 def validate_config(config: dict):
-    """Fail fast if the config is malformed or references missing files."""
+    \
     if "partition_date" not in config:
         raise IngestionError("Config missing required key: 'partition_date'")
     try:
@@ -82,7 +82,6 @@ def validate_config(config: dict):
         len(config["sources"]),
         sum(len(s.get("entities", {})) for s in config["sources"].values()),
     )
-
 
 def main():
     import argparse
@@ -189,7 +188,6 @@ def main():
         sys.exit(1)
     else:
         logger.info("ALL ENTITIES INGESTED SUCCESSFULLY")
-
 
 if __name__ == "__main__":
     main()

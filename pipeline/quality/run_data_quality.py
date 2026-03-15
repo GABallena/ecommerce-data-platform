@@ -1,10 +1,10 @@
-"""
-run_data_quality.py — Entry point for the Data Quality system.
-
-Usage:
-    python -m pipeline.quality.run_data_quality
-    python pipeline/quality/run_data_quality.py
-"""
+\
+\
+\
+\
+\
+\
+\
 
 import logging
 import sys
@@ -13,7 +13,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from pipeline.quality import DataQualityEngine, DQReport, write_report
-
 
 def main() -> DQReport:
     logging.basicConfig(
@@ -40,7 +39,6 @@ def main() -> DQReport:
         print(f"All {report.total} checks passed.")
 
     return report
-
 
 if __name__ == "__main__":
     main()

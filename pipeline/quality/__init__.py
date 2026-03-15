@@ -1,16 +1,16 @@
-"""
-data_quality.py — Comprehensive data quality system for the warehouse.
-
-Runs checks against DuckDB warehouse and produces a structured report.
-Covers:
-  5.1  Null / missing-value checks on required columns
-  5.2  Schema drift detection (expected vs actual columns/types)
-  5.3  Duplicate transaction detection (transaction_id, order_id)
-  5.4  Referential integrity checks (FK → PK orphan detection)
-  5.5  Currency consistency checks (order currency ↔ payment currency)
-  5.6  Arithmetic checks (subtotal − discount + shipping + tax ≈ total)
-  5.7  Report generation (data_quality_report per run)
-"""
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
 
 import csv
 import json
@@ -19,7 +19,6 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-
 
 import duckdb
 
@@ -30,7 +29,6 @@ DB_PATH = PROJECT_ROOT / "pipeline" / "warehouse" / "warehouse.duckdb"
 REPORT_DIR = PROJECT_ROOT / "pipeline" / "logs" / "dq_reports"
 REPORT_DIR.mkdir(parents=True, exist_ok=True)
 
-
 @dataclass
 class CheckResult:
     check_id: str
@@ -40,7 +38,6 @@ class CheckResult:
     passed: bool
     failing_rows: int = 0
     details: str = ""
-
 
 @dataclass
 class DQReport:
@@ -80,9 +77,8 @@ class DQReport:
                 lines.append(f"     → {c.details}")
         return "\n".join(lines)
 
-
 class DataQualityEngine:
-    """Runs all data quality checks against the warehouse."""
+\
 
     def __init__(self, db_path: Path = DB_PATH):
         self.con = duckdb.connect(str(db_path), read_only=True)
@@ -91,7 +87,7 @@ class DataQualityEngine:
         self.con.close()
 
     def run_all(self, run_id: str | None = None) -> DQReport:
-        """Execute every check category and return a report."""
+        \
         if not run_id:
             run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
 
@@ -584,9 +580,8 @@ class DataQualityEngine:
     def _query_scalar(self, sql: str) -> int:
         return self.con.execute(sql).fetchone()[0]
 
-
 def write_report(report: DQReport) -> Path:
-    """Write DQ report as JSON + summary text."""
+    \
     json_path = REPORT_DIR / f"dq_report_{report.run_id}.json"
     data = {
         "run_id": report.run_id,

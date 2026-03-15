@@ -1,10 +1,4 @@
--- ============================================================
--- GOLD LAYER: Dimension tables
--- ============================================================
 
--- ---------------------------------------------------------
--- dim_date: Pre-generated calendar (2024-01-01 to 2027-12-31)
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE gold.dim_date AS
 WITH date_spine AS (
     SELECT UNNEST(generate_series(DATE '2024-01-01', DATE '2027-12-31', INTERVAL 1 DAY))::DATE AS full_date
@@ -21,7 +15,6 @@ SELECT
     EXTRACT(YEAR FROM full_date)::INTEGER                 AS year,
     CASE WHEN EXTRACT(ISODOW FROM full_date) IN (6, 7)
          THEN TRUE ELSE FALSE END                         AS is_weekend,
-    -- Fiscal year: assume starts in July (configurable)
     CASE WHEN EXTRACT(MONTH FROM full_date) >= 7
          THEN EXTRACT(QUARTER FROM full_date)::INTEGER - 2
          ELSE EXTRACT(QUARTER FROM full_date)::INTEGER + 2
@@ -32,12 +25,8 @@ SELECT
     END                                                   AS fiscal_year
 FROM date_spine;
 
--- ---------------------------------------------------------
--- dim_customers: Deduplicated by email, SCD Type 2 ready
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE gold.dim_customers AS
 WITH canonical AS (
-    -- Pick the earliest customer_id per email as canonical
     SELECT
         email,
         MIN(customer_id) AS canonical_customer_id
@@ -65,16 +54,12 @@ SELECT
     marketing_opt_in,
     created_at,
     is_duplicate_email,
-    -- SCD Type 2 fields (initial load: all current)
     TRUE                                AS is_current,
     created_at                          AS valid_from,
     NULL::TIMESTAMP                     AS valid_to,
     CURRENT_TIMESTAMP                   AS _loaded_at
 FROM enriched;
 
--- ---------------------------------------------------------
--- dim_products: Standardized categories, gross margin
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE gold.dim_products AS
 SELECT
     ROW_NUMBER() OVER (ORDER BY product_id)::INTEGER AS product_sk,

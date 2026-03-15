@@ -1,5 +1,3 @@
--- Category mapping seed: raw → standardized
--- Used by stg_products to normalize inconsistent category values
 CREATE OR REPLACE TABLE silver.seed_category_mapping AS
 SELECT * FROM (VALUES
     ('running shoes',  'Footwear'),
@@ -12,7 +10,6 @@ SELECT * FROM (VALUES
     ('electronics',    'Electronics')
 ) AS t(category_raw, category_standardized);
 
--- Exchange rate seed: for multi-currency conversion
 CREATE OR REPLACE TABLE silver.seed_exchange_rates AS
 SELECT * FROM (VALUES
     ('USD', 1.0000),

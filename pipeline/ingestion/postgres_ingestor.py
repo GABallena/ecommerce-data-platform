@@ -1,14 +1,13 @@
-"""
-Ingestor for PostgreSQL-sourced tables: orders, order_items, customers, products.
-Simulates incremental reads from CSV exports of the production database.
-"""
+\
+\
+\
+\
 
 from pathlib import Path
 
 import pandas as pd
 
 from .base_ingestor import BaseIngestor
-
 
 class PostgresIngestor(BaseIngestor):
     SOURCE_NAME = "postgres"

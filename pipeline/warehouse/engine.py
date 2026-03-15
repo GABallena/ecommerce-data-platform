@@ -1,7 +1,7 @@
-"""
-Warehouse engine — runs SQL models against DuckDB, reading from the raw Parquet zone.
-Supports Bronze (1:1 raw load), Silver (cleaned/staged), and Gold (star schema) layers.
-"""
+\
+\
+\
+\
 
 import logging
 import time
@@ -16,7 +16,6 @@ RAW_ROOT = PROJECT_ROOT / "pipeline" / "raw"
 DB_PATH = PROJECT_ROOT / "pipeline" / "warehouse" / "warehouse.duckdb"
 SQL_DIR = PROJECT_ROOT / "pipeline" / "warehouse"
 
-
 class WarehouseEngine:
     def __init__(self, db_path: Path = DB_PATH):
         self.db_path = db_path
@@ -29,7 +28,7 @@ class WarehouseEngine:
             self.conn.execute(f"CREATE SCHEMA IF NOT EXISTS {schema}")
 
     def run_sql_file(self, sql_path: Path, description: str = "") -> None:
-        """Execute a SQL file against the warehouse."""
+        \
         label = description or sql_path.stem
         logger.info("Running model: %s", label)
         start = time.time()
@@ -47,7 +46,7 @@ class WarehouseEngine:
         logger.info("  ✓ %s completed (%.3fs)", label, elapsed)
 
     def run_sql(self, sql: str, description: str = "") -> None:
-        """Execute raw SQL string."""
+        \
         sql = sql.replace("{{RAW_ROOT}}", str(RAW_ROOT))
         sql = sql.replace("{{PARTITION_DATE}}", self._partition_date or "")
         for statement in self._split_statements(sql):
@@ -56,11 +55,11 @@ class WarehouseEngine:
                 self.conn.execute(statement)
 
     def query(self, sql: str):
-        """Run a query and return the result as a list of tuples."""
+        \
         return self.conn.execute(sql).fetchall()
 
     def query_df(self, sql: str):
-        """Run a query and return a pandas DataFrame."""
+        \
         return self.conn.execute(sql).fetchdf()
 
     def set_partition_date(self, dt: str):
@@ -69,7 +68,7 @@ class WarehouseEngine:
     _partition_date: str | None = None
 
     def run_layer(self, layer: str, partition_date: str):
-        """Run all .sql files in a layer directory, sorted by filename."""
+        \
         self.set_partition_date(partition_date)
         layer_dir = SQL_DIR / layer
         if not layer_dir.exists():
@@ -86,7 +85,7 @@ class WarehouseEngine:
             self.run_sql_file(sql_file, description=f"{layer}/{sql_file.stem}")
 
     def table_stats(self, schema: str) -> list[dict]:
-        """Return row counts for all tables in a schema."""
+        \
         tables = self.conn.execute(
             f"SELECT table_name FROM information_schema.tables WHERE table_schema = '{schema}'"
         ).fetchall()
@@ -103,7 +102,7 @@ class WarehouseEngine:
 
     @staticmethod
     def _split_statements(sql: str) -> list[str]:
-        """Split SQL text on semicolons, respecting basic quoting."""
+        \
         statements = []
         current = []
         in_quote = False

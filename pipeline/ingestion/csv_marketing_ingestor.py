@@ -1,13 +1,12 @@
-"""
-Ingestor for marketing CSV exports: campaign_performance, email_sends.
-"""
+\
+\
+\
 
 from pathlib import Path
 
 import pandas as pd
 
 from .base_ingestor import BaseIngestor
-
 
 class CSVMarketingIngestor(BaseIngestor):
     SOURCE_NAME = "marketing"

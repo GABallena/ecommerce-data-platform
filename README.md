@@ -2,7 +2,7 @@
 
 End-to-end data platform that ingests raw e-commerce data from multiple source systems, transforms it through a medallion architecture (Bronze → Silver → Gold), and produces analytics-ready fact and dimension tables in a local DuckDB warehouse.
 
-The `data/` directory contains small sample datasets for demonstration and CI testing. In a production setting, these would be replaced by live extracts from the source systems described in [docs/client_request.md](docs/client_request.md).
+The `data/` directory contains small sample datasets for demonstration and CI testing.
 
 ## What It Does
 
@@ -36,7 +36,7 @@ The `data/` directory contains small sample datasets for demonstration and CI te
 │   ├── terraform/               AWS ECS Fargate deployment
 │   ├── configs/                 Environment-specific configs (dev/prod)
 │   └── scripts/                 Deploy and local run scripts
-├── docs/                        Technical docs, data dictionary, client requirements
+├── docs/                        Technical docs, data dictionary
 ├── .github/workflows/           CI/CD pipeline
 ├── Dockerfile                   Multi-stage container build
 ├── docker-compose.yml           Local multi-service setup

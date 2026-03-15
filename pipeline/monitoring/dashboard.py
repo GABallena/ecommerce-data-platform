@@ -1,22 +1,22 @@
-"""
-dashboard.py — CLI monitoring dashboard.
-
-Reads all log files and prints a unified, formatted view of:
-  - Pipeline run history
-  - Per-task runtime metrics
-  - Failure log
-  - Ingestion volumes
-  - Data quality trends
-
-Usage:
-    python -m pipeline.monitoring.dashboard
-    python -m pipeline.monitoring.dashboard --section runs
-    python -m pipeline.monitoring.dashboard --section tasks
-    python -m pipeline.monitoring.dashboard --section failures
-    python -m pipeline.monitoring.dashboard --section ingestion
-    python -m pipeline.monitoring.dashboard --section dq
-    python -m pipeline.monitoring.dashboard --json
-"""
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
 
 import argparse
 import json
@@ -27,12 +27,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from pipeline.monitoring import get_dashboard_data
 
-
 def _table(rows: list[dict], columns: list[tuple[str, str, int]]) -> str:
-    """
-    Format rows into an ASCII table.
-    columns: list of (dict_key, display_header, width)
-    """
+    \
+\
+\
+\
     if not rows:
         return "  (no data)\n"
 
@@ -52,13 +51,11 @@ def _table(rows: list[dict], columns: list[tuple[str, str, int]]) -> str:
 
     return "\n".join(lines) + "\n"
 
-
 def _shorten_ts(ts: str) -> str:
-    """Shorten ISO timestamp to readable form."""
+    \
     if not ts:
         return ""
     return ts[:19].replace("T", " ")
-
 
 def render_runs(data: dict) -> str:
     runs = data.get("pipeline_runs", [])
@@ -91,7 +88,6 @@ def render_runs(data: dict) -> str:
         f"Success rate: {(total - failed_runs) / total * 100:.0f}%\n"
     )
     return "\n".join(lines)
-
 
 def render_tasks(data: dict) -> str:
     tasks = data.get("task_history", [])
@@ -136,7 +132,6 @@ def render_tasks(data: dict) -> str:
 
     return "\n".join(lines)
 
-
 def render_failures(data: dict) -> str:
     failures = data.get("failures", [])
     lines = ["\n═══ FAILURE LOG ═══\n"]
@@ -164,7 +159,6 @@ def render_failures(data: dict) -> str:
         )
     )
     return "\n".join(lines)
-
 
 def render_ingestion(data: dict) -> str:
     vols = data.get("ingestion_volumes", [])
@@ -213,7 +207,6 @@ def render_ingestion(data: dict) -> str:
 
     return "\n".join(lines)
 
-
 def render_dq(data: dict) -> str:
     history = data.get("dq_history", [])
     latest = data.get("latest_dq_report")
@@ -261,7 +254,6 @@ def render_dq(data: dict) -> str:
 
     return "\n".join(lines)
 
-
 SECTIONS = {
     "runs": render_runs,
     "tasks": render_tasks,
@@ -269,7 +261,6 @@ SECTIONS = {
     "ingestion": render_ingestion,
     "dq": render_dq,
 }
-
 
 def main():
     parser = argparse.ArgumentParser(description="Pipeline Monitoring Dashboard")
@@ -296,7 +287,6 @@ def main():
             print(render_fn(data))
 
     print("═" * 60 + "\n")
-
 
 if __name__ == "__main__":
     main()

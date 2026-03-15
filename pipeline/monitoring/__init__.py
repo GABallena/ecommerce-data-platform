@@ -1,13 +1,13 @@
-"""
-monitoring — Pipeline monitoring, metrics persistence, and CLI dashboard.
-
-Provides:
-  6.1  Enhanced pipeline run history (per-task detail rows)
-  6.2  Runtime metrics persistence (duration, attempts per task)
-  6.3  Failure tracking (error messages, failure counts per task over time)
-  6.4  Ingestion volume tracking (rows per source per entity per run)
-  6.5  CLI dashboard (unified view of all monitoring data)
-"""
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
 
 import csv
 import json
@@ -28,9 +28,8 @@ INGESTION_LOG = LOG_DIR / "ingestion_log.csv"
 DQ_HISTORY = LOG_DIR / "dq_reports" / "dq_history.csv"
 FAILURE_LOG = LOG_DIR / "failure_log.csv"
 
-
 class PipelineMonitor:
-    """Collects metrics from a DAG run and persists them."""
+\
 
     def __init__(self, pipeline_run_id: str | None = None):
         self.pipeline_run_id = pipeline_run_id or datetime.now(timezone.utc).strftime(
@@ -38,7 +37,7 @@ class PipelineMonitor:
         )
 
     def log_task_results(self, dag_id: str, results: dict):
-        """Persist one row per task with full timing + status detail."""
+        \
         header = [
             "pipeline_run_id",
             "run_ts",
@@ -80,7 +79,7 @@ class PipelineMonitor:
         )
 
     def log_failures(self, dag_id: str, results: dict):
-        """Log failed tasks to a dedicated failure log."""
+        \
         failed = {tid: r for tid, r in results.items() if not r.succeeded}
         if not failed:
             return
@@ -120,7 +119,7 @@ class PipelineMonitor:
         )
 
     def get_ingestion_volumes(self) -> list[dict]:
-        """Read ingestion_log.csv and return volume summary per source/entity."""
+        \
         if not INGESTION_LOG.exists():
             return []
 
@@ -141,17 +140,15 @@ class PipelineMonitor:
                     )
         return volumes
 
-
 def _read_csv(path: Path) -> list[dict]:
-    """Read a CSV into a list of dicts (empty list if file missing)."""
+    \
     if not path.exists():
         return []
     with open(path) as f:
         return list(csv.DictReader(f))
 
-
 def get_dashboard_data() -> dict[str, Any]:
-    """Assemble all monitoring data for the dashboard."""
+    \
     data: dict[str, Any] = {}
 
     data["pipeline_runs"] = _read_csv(PIPELINE_HISTORY)

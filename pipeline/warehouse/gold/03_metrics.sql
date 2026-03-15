@@ -1,12 +1,4 @@
--- ============================================================
--- GOLD LAYER: Derived metric tables (Step 3.6 – 3.9)
--- ============================================================
 
--- ---------------------------------------------------------
--- 3.6  metric_customer_lifetime_value
---      One row per canonical customer with cumulative spend,
---      order frequency, recency, and CLV estimate.
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE gold.metric_customer_lifetime_value AS
 WITH customer_orders AS (
     SELECT
@@ -57,7 +49,6 @@ SELECT
          THEN DATE_DIFF('day', last_order_date, CURRENT_DATE)
          ELSE NULL
     END                                              AS days_since_last_order,
-    -- Simple CLV = AOV × purchase frequency (orders per 90 days)
     ROUND(
         (total_revenue_usd / NULLIF(completed_orders, 0))
         * (completed_orders::DOUBLE
@@ -67,11 +58,6 @@ SELECT
     CURRENT_TIMESTAMP                                AS _computed_at
 FROM customer_orders;
 
--- ---------------------------------------------------------
--- 3.7  metric_order_conversion_rate
---      Funnel analysis: how many orders reach each status,
---      plus payment conversion rates.
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE gold.metric_order_conversion_rate AS
 WITH order_funnel AS (
     SELECT
@@ -110,15 +96,8 @@ SELECT
 FROM order_funnel
 ORDER BY order_date;
 
--- ---------------------------------------------------------
--- 3.8  metric_revenue_by_campaign
---      Attribute order revenue back to marketing campaigns
---      via email-engagement links (customer touched by campaign
---      who later placed an order on the same date or after).
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE gold.metric_revenue_by_campaign AS
 WITH campaign_reach AS (
-    -- Aggregate email metrics per campaign
     SELECT
         fe.campaign_id,
         MIN(fe.campaign_name)                        AS campaign_name,
@@ -130,8 +109,6 @@ WITH campaign_reach AS (
     GROUP BY fe.campaign_id
 ),
 campaign_attributed_revenue AS (
-    -- Match customers who received a campaign email AND placed an order
-    -- on the same day or within 7 days after
     SELECT
         fe.campaign_id,
         SUM(fo.total_amount_usd)                     AS attributed_revenue_usd,
@@ -147,7 +124,6 @@ campaign_attributed_revenue AS (
     GROUP BY fe.campaign_id
 ),
 paid_spend AS (
-    -- Get paid campaign spend from fact_campaign_performance
     SELECT
         campaign_id,
         MIN(campaign_name)                           AS campaign_name,
@@ -162,22 +138,18 @@ paid_spend AS (
 SELECT
     COALESCE(cr.campaign_id, ps.campaign_id)         AS campaign_id,
     COALESCE(cr.campaign_name, ps.campaign_name)     AS campaign_name,
-    -- Email metrics
     cr.total_sends,
     cr.delivered,
     cr.opened,
     cr.clicked,
-    -- Paid metrics
     ps.total_spend,
     ps.total_impressions,
     ps.total_clicks                                  AS paid_clicks,
     ps.total_conversions,
     ps.reported_revenue                              AS paid_reported_revenue,
-    -- Attribution
     COALESCE(car.attributed_orders, 0)               AS attributed_orders,
     ROUND(COALESCE(car.attributed_revenue_usd, 0), 2)
                                                      AS attributed_revenue_usd,
-    -- ROAS on attributed revenue
     ROUND(COALESCE(car.attributed_revenue_usd, 0)
           / NULLIF(ps.total_spend, 0), 2)            AS attributed_roas,
     CURRENT_TIMESTAMP                                AS _computed_at
@@ -187,14 +159,8 @@ FULL OUTER JOIN paid_spend ps
 LEFT JOIN campaign_attributed_revenue car
     ON COALESCE(cr.campaign_id, ps.campaign_id) = car.campaign_id;
 
--- ---------------------------------------------------------
--- 3.9  metric_inventory_turnover
---      Per-product inventory efficiency: turnover ratio,
---      days of supply, stockout risk.
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE gold.metric_inventory_turnover AS
 WITH product_sales AS (
-    -- Units sold per product (non-cancelled orders only)
     SELECT
         dp.product_sk,
         dp.product_id,
@@ -216,7 +182,6 @@ WITH product_sales AS (
              dp.product_name, dp.category_standardized, dp.unit_cost
 ),
 current_inventory AS (
-    -- Latest snapshot per product (across all warehouses)
     SELECT
         product_sk,
         SUM(on_hand_qty)                             AS total_on_hand,
@@ -228,7 +193,6 @@ current_inventory AS (
     GROUP BY product_sk
 ),
 pending_supply AS (
-    -- Incoming POs not yet fully received
     SELECT
         product_sk,
         SUM(ordered_qty - received_qty)              AS incoming_qty,
@@ -251,12 +215,8 @@ SELECT
     ci.total_reserved,
     ci.any_below_reorder,
     ci.total_inventory_value,
-    -- Inventory turnover = COGS / avg inventory value
-    -- Using units_sold * unit_cost as COGS proxy
     ROUND((ps.units_sold * ps.unit_cost)
           / NULLIF(ci.total_inventory_value, 0), 4)  AS inventory_turnover_ratio,
-    -- Days of supply = current on-hand / daily sell rate
-    -- daily sell rate approximated as units_sold (partition is 1 day)
     ROUND(ci.total_on_hand::DOUBLE
           / NULLIF(ps.units_sold, 0), 1)             AS days_of_supply,
     COALESCE(sup.incoming_qty, 0)                    AS incoming_supply_qty,

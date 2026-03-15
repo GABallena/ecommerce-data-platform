@@ -1,10 +1,4 @@
--- ============================================================
--- GOLD LAYER: Fact tables
--- ============================================================
 
--- ---------------------------------------------------------
--- fact_orders: One row per order
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE gold.fact_orders AS
 SELECT
     ROW_NUMBER() OVER (ORDER BY o.order_id)::INTEGER    AS order_sk,
@@ -34,9 +28,6 @@ LEFT JOIN gold.dim_date dd
 LEFT JOIN silver.seed_exchange_rates fx
     ON o.currency = fx.currency;
 
--- ---------------------------------------------------------
--- fact_order_items: One row per order line item
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE gold.fact_order_items AS
 SELECT
     ROW_NUMBER() OVER (ORDER BY oi.order_item_id)::INTEGER AS order_item_sk,
@@ -57,9 +48,6 @@ LEFT JOIN gold.fact_orders fo
 LEFT JOIN gold.dim_products dp
     ON oi.product_id = dp.product_id;
 
--- ---------------------------------------------------------
--- fact_payments: One row per payment transaction
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE gold.fact_payments AS
 SELECT
     ROW_NUMBER() OVER (ORDER BY pt.transaction_id)::INTEGER AS payment_sk,
@@ -92,9 +80,6 @@ LEFT JOIN gold.dim_date dd
 LEFT JOIN silver.seed_exchange_rates fx
     ON pt.currency = fx.currency;
 
--- ---------------------------------------------------------
--- fact_inventory_daily: One row per SKU × warehouse × day
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE gold.fact_inventory_daily AS
 SELECT
     ROW_NUMBER() OVER (ORDER BY inv.snapshot_date, inv.warehouse_id, inv.sku)::INTEGER
@@ -115,9 +100,6 @@ LEFT JOIN gold.dim_products dp
 LEFT JOIN gold.dim_date dd
     ON inv.snapshot_date = dd.full_date;
 
--- ---------------------------------------------------------
--- fact_campaign_performance: One row per campaign×platform×country×device×day
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE gold.fact_campaign_performance AS
 SELECT
     ROW_NUMBER() OVER (ORDER BY cp.campaign_date, cp.campaign_id)::INTEGER
@@ -144,9 +126,6 @@ FROM silver.stg_campaign_performance cp
 LEFT JOIN gold.dim_date dd
     ON cp.campaign_date = dd.full_date;
 
--- ---------------------------------------------------------
--- fact_email_engagement: One row per email send per recipient
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE gold.fact_email_engagement AS
 SELECT
     ROW_NUMBER() OVER (ORDER BY es.send_date, es.campaign_id, es.customer_id)::INTEGER
@@ -167,9 +146,6 @@ LEFT JOIN gold.dim_customers dc
 LEFT JOIN gold.dim_date dd
     ON es.send_date = dd.full_date;
 
--- ---------------------------------------------------------
--- fact_purchase_orders: One row per PO line
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE gold.fact_purchase_orders AS
 SELECT
     ROW_NUMBER() OVER (ORDER BY po.po_id)::INTEGER       AS po_sk,

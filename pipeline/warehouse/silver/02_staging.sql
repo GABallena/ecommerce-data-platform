@@ -1,10 +1,4 @@
--- ============================================================
--- SILVER LAYER: Cleaned, typed, deduplicated staging tables
--- ============================================================
 
--- ---------------------------------------------------------
--- stg_customers: trim strings, handle duplicates, type casts
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE silver.stg_customers AS
 WITH deduplicated AS (
     SELECT
@@ -25,16 +19,12 @@ SELECT
     UPPER(TRIM(CAST(country_code AS VARCHAR))) AS country_code,
     LOWER(TRIM(CAST(status AS VARCHAR)))       AS status,
     CAST(marketing_opt_in AS BOOLEAN)   AS marketing_opt_in,
-    -- Flag duplicate emails
     CASE WHEN COUNT(*) OVER (PARTITION BY TRIM(LOWER(CAST(email AS VARCHAR)))) > 1
          THEN TRUE ELSE FALSE
     END                                 AS is_duplicate_email
 FROM deduplicated
 WHERE _row_num = 1;
 
--- ---------------------------------------------------------
--- stg_products: standardize categories, compute margin
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE silver.stg_products AS
 SELECT
     CAST(p.product_id AS INTEGER)       AS product_id,
@@ -54,9 +44,6 @@ FROM bronze.products p
 LEFT JOIN silver.seed_category_mapping cm
     ON LOWER(TRIM(CAST(p.category AS VARCHAR))) = cm.category_raw;
 
--- ---------------------------------------------------------
--- stg_orders: type cast, validate totals
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE silver.stg_orders AS
 SELECT
     CAST(order_id AS INTEGER)                   AS order_id,
@@ -69,7 +56,6 @@ SELECT
     CAST(shipping_amount AS DECIMAL(18,2))      AS shipping_amount,
     CAST(tax_amount AS DECIMAL(18,2))           AS tax_amount,
     CAST(total_amount AS DECIMAL(18,2))         AS total_amount,
-    -- Arithmetic validation flag
     ABS(
         (subtotal_amount - discount_amount + shipping_amount + tax_amount)
         - total_amount
@@ -80,9 +66,6 @@ SELECT
     CAST(updated_at AS TIMESTAMP)               AS updated_at
 FROM bronze.orders;
 
--- ---------------------------------------------------------
--- stg_order_items: type cast, validate line_total
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE silver.stg_order_items AS
 SELECT
     CAST(order_item_id AS INTEGER)              AS order_item_id,
@@ -98,9 +81,6 @@ SELECT
                                                 AS has_line_total_mismatch
 FROM bronze.order_items;
 
--- ---------------------------------------------------------
--- stg_payment_transactions: type cast, clean nulls
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE silver.stg_payment_transactions AS
 SELECT
     TRIM(CAST(transaction_id AS VARCHAR))        AS transaction_id,
@@ -120,9 +100,6 @@ SELECT
     CAST(refund_flag AS BOOLEAN)                AS refund_flag
 FROM bronze.payment_transactions;
 
--- ---------------------------------------------------------
--- stg_campaign_performance: type cast
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE silver.stg_campaign_performance AS
 SELECT
     CAST(campaign_date AS DATE)                 AS campaign_date,
@@ -141,9 +118,6 @@ SELECT
     CAST(loaded_at AS TIMESTAMP)                AS loaded_at
 FROM bronze.campaign_performance;
 
--- ---------------------------------------------------------
--- stg_email_sends: type cast, normalize booleans
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE silver.stg_email_sends AS
 SELECT
     CAST(send_date AS DATE)                     AS send_date,
@@ -159,9 +133,6 @@ SELECT
     CAST(loaded_at AS TIMESTAMP)                AS loaded_at
 FROM bronze.email_sends;
 
--- ---------------------------------------------------------
--- stg_inventory_snapshot: type cast
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE silver.stg_inventory_snapshot AS
 SELECT
     CAST(snapshot_date AS DATE)                  AS snapshot_date,
@@ -175,9 +146,6 @@ SELECT
     CAST(unit_cost AS DECIMAL(18,2))             AS unit_cost
 FROM bronze.inventory_snapshot;
 
--- ---------------------------------------------------------
--- stg_purchase_orders: type cast, compute fill rate
--- ---------------------------------------------------------
 CREATE OR REPLACE TABLE silver.stg_purchase_orders AS
 SELECT
     CAST(po_id AS INTEGER)                       AS po_id,
